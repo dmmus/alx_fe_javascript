@@ -72,16 +72,38 @@ function saveLastFilter(category) {
 // --- Server Mock Functions ---
 
 /**
- * **CORRECTED NAME:** Simulates fetching data from the server.
- * Uses a Promise and setTimeout to mock network latency.
+ * CORRECTED: Fetches simulated quote data from a real public mock API.
+ * Maps the API's fields (title, body) to the app's fields (text, category).
  */
 function fetchQuotesFromServer() {
-    return new Promise(resolve => {
-        setTimeout(() => {
-            // Deep copy to prevent direct mutation of serverQuotes
-            resolve(JSON.parse(JSON.stringify(serverQuotes))); 
-        }, 1500);
-    });
+    // 1. Define the API endpoint (e.g., JSONPlaceholder posts)
+    const API_URL = 'https://jsonplaceholder.typicode.com/posts';
+
+    // 2. Use the standard Fetch API
+    return fetch(API_URL)
+        .then(response => {
+            // Check if the response is successful (status 200-299)
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json(); // Parse the response body as JSON
+        })
+        .then(data => {
+            // 3. Map the external data format to your internal quote object structure
+            // We take only the first 10 items for simplicity
+            const mappedQuotes = data.slice(0, 10).map(post => ({
+                id: post.id,
+                text: post.title, // Using 'title' as the quote text
+                category: 'API-Fetched', // Assigning a fixed category
+            }));
+            
+            return mappedQuotes;
+        })
+        .catch(error => {
+            console.error("Error fetching quotes from API:", error);
+            // Return an empty array or throw the error to handle the failure in syncData()
+            return []; 
+        });
 }
 
 /**
