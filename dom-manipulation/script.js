@@ -229,13 +229,23 @@ async function syncQuotes() {
         showRandomQuote();
 
         let message = `Sync complete. ${newQuotesAdded} new quotes added from server.`;
+        
         if (conflictsResolved > 0) {
+            // Case 1: Conflicts happened (Highest priority notification)
             message += ` ${conflictsResolved} conflicts resolved (server version kept).`;
             updateSyncStatus(message, 'red');
-        } else if (newQuotesAdded > 0 || pushedCount > 0) {
+            
+        } else if (newQuotesAdded > 0) {
+            // Case 2: New quotes were pulled from the server
             updateSyncStatus(message, 'blue');
+
+        } else if (pushedCount > 0) {
+            // Case 3: Only local quotes were successfully pushed
+            updateSyncStatus(`Pushed ${pushedCount} local quotes. Data synced successfully!`, 'darkgreen');
+        
         } else {
-            updateSyncStatus("Sync complete. Data is consistent.", 'darkgreen');
+            // Case 4: No changes detected. Simply confirm successful connection/sync.
+            updateSyncStatus("Quotes synced with server! Data is consistent.", 'darkgreen'); // <-- SUCCESS MESSAGE ADDED
         }
 
     } catch (error) {
