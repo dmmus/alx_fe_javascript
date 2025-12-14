@@ -107,22 +107,61 @@ function fetchQuotesFromServer() {
 }
 
 /**
- * Mock function to simulate pushing local changes to the server.
+ * **MOCK POST/PUSH:** Demonstrates the correct fetch syntax for posting a single quote.
+ * In a real app, this would send data to the server and receive the final object/ID back.
  */
-function mockPushToServer() {
-    const newLocalQuotes = quotes.filter(q => !q.id);
-    
-    newLocalQuotes.forEach(q => {
-        // Assign a unique server ID to the new quote
-        q.id = nextServerId++;
-        serverQuotes.push(q);
-    });
+function pushQuoteToServer(quote) {
+    // 1. Define the API endpoint for POST
+    const API_URL = 'https://jsonplaceholder.typicode.com/posts';
 
-    return new Promise(resolve => {
-        setTimeout(() => {
-            resolve(newLocalQuotes.length);
-        }, 800);
+    // 2. Use the correct fetch syntax for POSTing data
+    return fetch(API_URL, {
+        method: 'POST', // The required HTTP method
+        headers: {
+            'Content-Type': 'application/json', // Specifies the body format
+        },
+        body: JSON.stringify({
+            // Data payload to send (mapping quote fields to API fields)
+            title: quote.text, 
+            body: `Category: ${quote.category}`, 
+            userId: 1, // Required by JSONPlaceholder
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Failed to post quote. Status: ${response.status}`);
+        }
+        return response.json(); // The server's response, typically including the new ID
+    })
+    .then(postedData => {
+        // MOCK STEP: We use the ID assigned by the mock API (e.g., 101) 
+        // to update our local quote object.
+        quote.id = postedData.id;
+        console.log(`Successfully posted quote to API. Assigned ID: ${quote.id}`);
+        return true; // Success flag
+    })
+    .catch(error => {
+        console.error("Error pushing quote to API:", error);
+        return false; // Failure flag
     });
+}
+
+/**
+ * Executes a sequence of push operations for all unsynced local quotes.
+ * This replaces the old mockPushToServer.
+ */
+async function pushNewLocalQuotes() {
+    const newLocalQuotes = quotes.filter(q => !q.id);
+    let pushedCount = 0;
+
+    for (const quote of newLocalQuotes) {
+        // Wait for each push to complete sequentially
+        const success = await pushQuoteToServer(quote);
+        if (success) {
+            pushedCount++;
+        }
+    }
+    return pushedCount;
 }
 
 
@@ -130,21 +169,25 @@ function mockPushToServer() {
 // 2. Data Sync and Conflict Resolution Logic (Updated)
 // ====================================================================
 
-/**
- * Performs bi-directional data synchronization and resolves conflicts.
- * Strategy: Server data takes precedence.
- */
+// OLD syncData PUSH step (using mockPushToServer)
+/*
+        // 1. PUSH: Push new local quotes to the mock server
+        const pushedCount = await mockPushToServer();
+*/
+
+// NEW syncData PUSH step (using the real syntax)
 async function syncData() {
     updateSyncStatus("Syncing data... please wait.", 'orange');
     
     try {
-        // 1. PUSH: Push new local quotes to the mock server
-        const pushedCount = await mockPushToServer();
+        // 1. PUSH: Push new local quotes to the API using the correct syntax
+        const pushedCount = await pushNewLocalQuotes();
         if (pushedCount > 0) {
             // Update local IDs after push
             saveQuotes(); 
             console.log(`Pushed ${pushedCount} new local quotes to server.`);
         }
+        // ... rest of the syncData function remains the same ...
 
         // 2. PULL: Fetch the complete, authoritative data from the server
         const serverData = await fetchQuotesFromServer(); // *** RENAMED CALL ***
