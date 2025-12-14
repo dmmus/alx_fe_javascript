@@ -176,7 +176,7 @@ async function pushNewLocalQuotes() {
 */
 
 // NEW syncData PUSH step (using the real syntax)
-async function syncData() {
+async function syncQuotes() {
     updateSyncStatus("Syncing data... please wait.", 'orange');
     
     try {
@@ -187,7 +187,7 @@ async function syncData() {
             saveQuotes(); 
             console.log(`Pushed ${pushedCount} new local quotes to server.`);
         }
-        // ... rest of the syncData function remains the same ...
+        // ... rest of the syncQuotes function remains the same ...
 
         // 2. PULL: Fetch the complete, authoritative data from the server
         const serverData = await fetchQuotesFromServer(); // *** RENAMED CALL ***
@@ -389,7 +389,7 @@ function createAddQuoteForm() {
 
     const syncButton = document.createElement('button');
     syncButton.textContent = 'Manual Sync';
-    syncButton.onclick = syncData;
+    syncButton.onclick = syncQuotes;
     syncButton.style.padding = '8px 15px';
     syncButton.style.backgroundColor = '#007bff';
     syncButton.style.color = 'white';
@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
     createAddQuoteForm(); 
 
     // Implement Periodic Sync
-    setInterval(syncData, 30000); 
+    setInterval(syncQuotes(), 30000); 
 
     // Perform an initial sync on load
     syncData();
