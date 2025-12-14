@@ -7,21 +7,35 @@
     <style>
       body { font-family: sans-serif; padding: 20px; }
       #quoteDisplay { margin: 20px 0; padding: 10px; border-left: 5px solid #007bff; background-color: #f8f9fa; }
-      button, input[type="file"] { margin: 5px; padding: 10px; cursor: pointer; }
+      #allQuotesDisplay { margin-top: 20px; border: 1px solid #ddd; padding: 15px; max-height: 400px; overflow-y: auto;}
+      .quoteItem { padding: 8px 0; border-bottom: 1px dotted #eee; }
+      .quoteItem:last-child { border-bottom: none; }
+      .quoteCategory { font-style: italic; color: #888; font-size: 0.9em; margin-left: 10px; }
+      button, input[type="file"], select { margin: 5px; padding: 10px; cursor: pointer; }
       #storageControls { margin-top: 30px; border-top: 1px dashed #ccc; padding-top: 15px; }
     </style>
   </head>
   <body>
     <h1>Dynamic Quote Generator</h1>
+    
+    <label for="categoryFilter">Filter by Category:</label>
+    <select id="categoryFilter" onchange="filterQuotes()">
+      <option value="all">All Categories</option>
+      </select>
+    
     <div id="quoteDisplay"></div>
     <button id="newQuote">Show New Quote</button>
+    <div id="allQuotesDisplay">
+        <h3>Filtered Quotes:</h3>
+        </div>
+
     <div id="storageControls">
         <h2>Data Management</h2>
         <button onclick="exportToJsonFile()">Export Quotes (JSON)</button>
         
         <label for="importFile">Import Quotes (JSON):</label>
         <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
-        <p><em>Check the console after running to see the session storage example.</em></p>
+        <p><em>The filter preference is saved to Local Storage.</em></p>
     </div>
 
     <script src="script.js"></script>
